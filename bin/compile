@@ -16,10 +16,12 @@ DEB="$CACHE_DIR/wkhtmltopdf.deb"
 TS=`date +%s`
 
 if [ ! -d "$BUILD_DIR" ]; then
+  echo "creating $BUILD_DIR"
   mkdir $BUILD_DIR
 fi
 
 if [ ! -d "$CACHE_DIR" ]; then
+  echo "creating $CACHE_DIR"
   mkdir $CACHE_DIR
 fi
 
