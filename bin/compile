@@ -15,6 +15,8 @@ CACHE_DIR=$2
 DEB="$CACHE_DIR/wkhtmltopdf.deb"
 TS=`date +%s`
 
+echo "custom wkhtmltopdf build pack"
+
 if [ ! -d "$BUILD_DIR" ]; then
   echo "creating $BUILD_DIR"
   mkdir $BUILD_DIR
