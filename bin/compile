@@ -1,53 +1,38 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
+# bin/compile BUILD_DIR CACHE_DIR ENV_DIR
 
-function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
-}
+# 2019-02-01: replaced old script with a simple script based on https://github.com/mwishum/heroku-buildpack-wkhtmltopdf/blob/fa55c6581d0bb69ec1f490ae62775d84c05ec904/bin/compile
 
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-DEB="$CACHE_DIR/wkhtmltopdf.deb"
-TS=`date +%s`
+WKHTMLTOPDF_URL="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb"
+DEB_FILENAME=$CACHE_DIR/$(basename $WKHTMLTOPDF_URL)
+EXTRACTED_DATA_TAR="$(pwd)/data.tar.xz"
+WKHTMLTOPDF_PATH=$CACHE_DIR/usr/local
+DESTINATION=$BUILD_DIR/bin  # will be `/app/bin` inside dyno
 
-echo "custom wkhtmltopdf build pack"
+# Download and extract wkhtmltopdf
+if [ ! -d "$WKHTMLTOPDF_PATH" ]; then
 
-if [ ! -d "$BUILD_DIR" ]; then
-  echo "creating $BUILD_DIR"
-  mkdir $BUILD_DIR
+	echo '-----> Downloading wkhtmltopdf'
+	mkdir -p $(dirname $DEB_FILENAME)
+	wget --quiet --continue --output-document="$DEB_FILENAME" "$WKHTMLTOPDF_URL"
+
+	echo '-----> Extracting wkhtmltopdf'
+	ar -xv $DEB_FILENAME
+
+	tar -xvf "$EXTRACTED_DATA_TAR" -C "$CACHE_DIR"
+	rm "$DEB_FILENAME"
 fi
 
-if [ ! -d "$CACHE_DIR" ]; then
-  echo "creating $CACHE_DIR"
-  mkdir $CACHE_DIR
+# Move files to /app/bin
+if [ ! -f "$DESTINATION/wkhtmltopdf" ]; then
+	echo '-----> Moving wkhtmltopdf binaries to /app/bin'
+
+	if [ ! -d "$DESTINATION" ]; then
+		mkdir -p "$DESTINATION"
+	fi
+
+	cp $WKHTMLTOPDF_PATH/bin/* $DESTINATION
 fi
-
-if [ ! -f $DEB ]; then
-  echo "Build dir ${BUILD_DIR}"
-  echo "Cache dir ${CACHE_DIR}"
-  WKHTMLTOPDF_DOWNLOAD_URL="https://downloads.wkhtmltopdf.org/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
-  echo "-----> Downloading wkhtmltopdf: $WKHTMLTOPDF_DOWNLOAD_URL"
-  curl -L --silent -o $DEB $WKHTMLTOPDF_DOWNLOAD_URL
-  ls -alh $CACHE_DIR
-fi
-
-echo "-----> Installing wkhtmltopdf 0.12.2.1"
-mkdir -p $BUILD_DIR/.apt
-dpkg -x $DEB $BUILD_DIR/.apt/
-
-echo "Writing profile script" | indent
-mkdir -p $BUILD_DIR/.profile.d
-cat <<EOF >$BUILD_DIR/.profile.d/wkhtmltopdf.sh
-export PATH="\$HOME/.apt/usr/local/bin:\$PATH"
-export LD_LIBRARY_PATH="\$HOME/.apt/usr/local/lib/x86_64-linux-gnu:\$HOME/.apt/usr/local/lib/i386-linux-gnu:\$HOME/.apt/usr/local/lib:\$LD_LIBRARY_PATH"
-export LIBRARY_PATH="\$HOME/.apt/usr/local/lib/x86_64-linux-gnu:\$HOME/.apt/usr/local/lib/i386-linux-gnu:\$HOME/.apt/usr/local/lib:\$LIBRARY_PATH"
-export INCLUDE_PATH="\$HOME/.apt/usr/local/include:\$INCLUDE_PATH"
-export CPATH="\$INCLUDE_PATH"
-export CPPPATH="\$INCLUDE_PATH"
-export PKG_CONFIG_PATH="\$HOME/.apt/usr/local/lib/x86_64-linux-gnu/pkgconfig:\$HOME/.apt/usr/local/lib/i386-linux-gnu/pkgconfig:\$HOME/.apt/usr/local/lib/pkgconfig:\$PKG_CONFIG_PATH"
-EOF
