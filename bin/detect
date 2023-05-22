@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ "$STACK" = "heroku-18" ]; then
-	echo "wkhtmltopdf"
+if [ "$STACK" = "heroku-20" ]; then
+  echo "wkhtmltopdf"
 else
-	echo "ERROR: wkhtmltopdf does not work with this stack version!"
-	exit 1
+  echo "ERROR: wkhtmltopdf does not work with this stack version!"
+  exit 1
 fi

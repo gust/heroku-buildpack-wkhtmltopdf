@@ -6,7 +6,7 @@
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-WKHTMLTOPDF_URL="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb"
+WKHTMLTOPDF_URL="https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.focal_amd64.deb"
 DEB_FILENAME=$CACHE_DIR/$(basename $WKHTMLTOPDF_URL)
 EXTRACTED_DATA_TAR="$(pwd)/data.tar.xz"
 WKHTMLTOPDF_PATH=$CACHE_DIR/usr/local
@@ -15,24 +15,24 @@ DESTINATION=$BUILD_DIR/bin  # will be `/app/bin` inside dyno
 # Download and extract wkhtmltopdf
 if [ ! -d "$WKHTMLTOPDF_PATH" ]; then
 
-	echo '-----> Downloading wkhtmltopdf'
-	mkdir -p $(dirname $DEB_FILENAME)
-	wget --quiet --continue --output-document="$DEB_FILENAME" "$WKHTMLTOPDF_URL"
+  echo '-----> Downloading wkhtmltopdf'
+  mkdir -p $(dirname $DEB_FILENAME)
+  wget --quiet --continue --output-document="$DEB_FILENAME" "$WKHTMLTOPDF_URL"
 
-	echo '-----> Extracting wkhtmltopdf'
-	ar -xv $DEB_FILENAME
+  echo '-----> Extracting wkhtmltopdf'
+  ar -xv $DEB_FILENAME
 
-	tar -xvf "$EXTRACTED_DATA_TAR" -C "$CACHE_DIR"
-	rm "$DEB_FILENAME"
+  tar -xvf "$EXTRACTED_DATA_TAR" -C "$CACHE_DIR"
+  rm "$DEB_FILENAME"
 fi
 
 # Move files to /app/bin
 if [ ! -f "$DESTINATION/wkhtmltopdf" ]; then
-	echo '-----> Moving wkhtmltopdf binaries to /app/bin'
+  echo '-----> Moving wkhtmltopdf binaries to /app/bin'
 
-	if [ ! -d "$DESTINATION" ]; then
-		mkdir -p "$DESTINATION"
-	fi
+  if [ ! -d "$DESTINATION" ]; then
+    mkdir -p "$DESTINATION"
+  fi
 
-	cp $WKHTMLTOPDF_PATH/bin/* $DESTINATION
+  cp $WKHTMLTOPDF_PATH/bin/* $DESTINATION
 fi
