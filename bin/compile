@@ -13,18 +13,15 @@ WKHTMLTOPDF_PATH=$CACHE_DIR/usr/local
 DESTINATION=$BUILD_DIR/bin  # will be `/app/bin` inside dyno
 
 # Download and extract wkhtmltopdf
-if [ ! -d "$WKHTMLTOPDF_PATH" ]; then
+echo "-----> Downloading wkhtmltopdf from $WKHTMLTOPDF_URL"
+mkdir -p $(dirname $DEB_FILENAME)
+wget --quiet --continue --output-document="$DEB_FILENAME" "$WKHTMLTOPDF_URL"
 
-  echo "-----> Downloading wkhtmltopdf from $WKHTMLTOPDF_URL"
-  mkdir -p $(dirname $DEB_FILENAME)
-  wget --quiet --continue --output-document="$DEB_FILENAME" "$WKHTMLTOPDF_URL"
+echo "-----> Extracting wkhtmltopdf $DEB_FILENAME"
+ar -xv $DEB_FILENAME
 
-  echo "-----> Extracting wkhtmltopdf $DEB_FILENAME"
-  ar -xv $DEB_FILENAME
-
-  tar -xvf "$EXTRACTED_DATA_TAR" -C "$CACHE_DIR"
-  rm "$DEB_FILENAME"
-fi
+tar -xvf "$EXTRACTED_DATA_TAR" -C "$CACHE_DIR"
+rm "$DEB_FILENAME"
 
 # Move files to /app/bin
 if [ ! -f "$DESTINATION/wkhtmltopdf" ]; then
